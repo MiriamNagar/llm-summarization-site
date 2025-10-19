@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Text Summarization — Live Streaming Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Live streaming summarization: Hebrew → English with optional Hebrew bullet back-translation. Tune generation parameters and watch results stream in real time."
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">Σ</div>
+          <div>
+            <h1 class="brand-title">Text Summarization Demo</h1>
+            <p class="brand-subtitle">
+              Hebrew → English summary with optional Hebrew bullets • Live streaming
+            </p>
+          </div>
+        </div>
+
+        <nav class="header-actions">
+          <a
+            class="button button-ghost"
+            href="https://github.com/MiriamNagar/triplet_packing_site/tree/main"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card" aria-labelledby="section-input">
+        <h2 id="section-input">Input & Parameters</h2>
+
+        <p id="helper-text" class="muted">
+          Paste Hebrew text, adjust parameters, and click <strong>Run</strong>.
+          When <code>Back translate</code> is ON, you’ll receive the summary as Hebrew bullets
+          (streamed point-by-point). When it’s OFF, you’ll see a continuous English stream.
+          You can change temperature/top-p/top-k to explore different styles.
+        </p>
+
+        <div class="flow">
+          <label class="label" for="text">Hebrew text</label>
+          <textarea
+            id="text"
+            class="textarea"
+            placeholder="Paste Hebrew text here (e.g., a short paragraph you want summarized)…"
+            dir="auto"
+            aria-describedby="helper-text"
+          ></textarea>
+
+          <div class="fieldset" role="group" aria-labelledby="params-title">
+            <h3 id="params-title" class="sr-only">Generation parameters</h3>
+
+            <div class="field">
+              <label class="checkbox">
+                <input id="back_translate" type="checkbox" checked />
+                <span>Back translate (stream bullets in Hebrew)</span>
+              </label>
+            </div>
+
+            <div class="field-group">
+              <div class="field">
+                <label class="label" for="max_tokens">Max tokens</label>
+                <input id="max_tokens" class="input" type="number" value="256" min="32" max="1024" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label class="label" for="temperature">Temperature</label>
+                <input id="temperature" class="input" type="number" step="0.1" value="0.5" min="0" max="2" inputmode="decimal" />
+              </div>
+              <div class="field">
+                <label class="label" for="top_p">Top-p</label>
+                <input id="top_p" class="input" type="number" step="0.05" value="0.9" min="0" max="1" inputmode="decimal" />
+              </div>
+              <div class="field">
+                <label class="label" for="top_k">Top-k</label>
+                <input id="top_k" class="input" type="number" value="40" min="1" max="200" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label class="label" for="repeat_penalty">Repeat penalty</label>
+                <input id="repeat_penalty" class="input" type="number" step="0.1" value="1.1" min="0.5" max="2" inputmode="decimal" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons + Status -->
+          <div class="actions">
+            <button id="go" class="button" aria-controls="out">Run</button>
+            <button id="clear" class="button button-ghost" type="button">Clear</button>
+            <span id="status" class="status" role="status" aria-live="polite">
+              <span class="dot" aria-hidden="true"></span>
+              <span id="status-text">Idle</span>
+            </span>
+          </div>
+
+          <!-- Live Output -->
+          <label class="label" for="out">Live output</label>
+          <div class="output">
+            <pre id="out" class="output-stream mono" aria-live="polite" aria-atomic="false"></pre>
+          </div>
+
+          <!-- Tips -->
+          <details class="tips">
+            <summary>Tips</summary>
+            <ul>
+              <li><strong>Hebrew bullets:</strong> turn on <em>Back translate</em>.</li>
+              <li><strong>English stream:</strong> turn off <em>Back translate</em>.</li>
+              <li><strong>More creative:</strong> raise <em>Temperature</em> or <em>Top-p</em>.</li>
+              <li><strong>More deterministic:</strong> lower <em>Temperature</em>.</li>
+            </ul>
+          </details>
+
+          <!-- Parameter Guide -->
+          <details class="param-info">
+            <summary><strong>Parameter Guide</strong></summary>
+            <p class="muted">
+              The following table explains each parameter and how it affects the model’s output.
+              Try adjusting them and observe how your summaries change in tone, precision, and creativity.
+            </p>
+
+            <div class="table-wrapper">
+              <table class="params-table">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Description</th>
+                    <th>Effect on Output</th>
+                    <th>When to Adjust</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>temperature</strong></td>
+                    <td>Controls randomness in token selection. Values between 0.0 and 1.0 (sometimes slightly higher allowed).</td>
+                    <td>Low values (0–0.3) produce deterministic, predictable outputs. Higher values (0.7–1.0) produce more creative or varied outputs.</td>
+                    <td>Use low values for summaries where consistency is important; high values for brainstorming or creative text generation.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>top_p</strong></td>
+                    <td>Nucleus sampling: only considers tokens whose cumulative probability is ≤ top_p.</td>
+                    <td>Lower values (e.g., 0.8) make output more focused; higher values (0.95+) allow the model to explore more options.</td>
+                    <td>Lower top_p for precise output; higher top_p to increase variety without fully randomizing.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>top_k</strong></td>
+                    <td>Limits token selection to the k most probable tokens at each step.</td>
+                    <td>Smaller top_k (e.g., 20–40) constrains output, reducing randomness. Larger top_k (50–100+) allows more variation.</td>
+                    <td>Combine with temperature or top_p to balance creativity vs reliability.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>repeat_penalty</strong></td>
+                    <td>Penalizes repeating the same tokens or phrases.</td>
+                    <td>Values greater than 1 discourage repetition; values below 1 allow repetition.</td>
+                    <td>Increase to reduce redundancy in long summaries.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>max_tokens</strong></td>
+                    <td>Maximum number of tokens to generate in the summary.</td>
+                    <td>Controls the length of the generated summary.</td>
+                    <td>Adjust based on the desired summary length.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>back_translate</strong></td>
+                    <td>If true, the final output is translated back into Hebrew.</td>
+                    <td>Enables a Hebrew summary instead of English output.</td>
+                    <td>Use when your end-user expects Hebrew text.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p class="muted">
+          Built for the GenAI ML Engineer assessment — Flask UI proxying a FastAPI streaming backend
+          (Phi-3 for summarization, NLLB/Opus-MT for translation).
+        </p>
+      </div>
+    </footer>
+
+    <noscript>
+      <div class="container">
+        <p class="muted">This demo requires JavaScript to stream results.</p>
+      </div>
+    </noscript>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
